@@ -1,18 +1,20 @@
 import sys
+import os
 import string
-import re
-from elftools.elf.elffile import ELFFile
 import struct
-from collections import Counter
+from elftools.elf.elffile import ELFFile
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn import datasets
 
 def getELFHeader(filename):
     with open(filename, 'rb') as f:
         elffile = ELFFile(f)
     return elffile.header
 
-def readfile(filename):
-    with open(filename, "rb") as f:
-        content = f.read()
+def readfile(fname):
+    with open(fname, "rb") as file:
+        content = file.read()
     return content
 
 def slidewindow(iterable, size=1):
@@ -45,12 +47,14 @@ def filterstrings(strings):
 #^((?!PART).)*$
 #[a-zA-Z0-9]{3,}$
 
+
+
 #------------MAIN FUNCTION:------------
 
+
+
 #Read a file:
-samplebinary = readfile("sample_exe64.elf")
-#print(samplebinary)
-#print(type(samplebinary))
+samplebinary = readfile("test_malware/malware (18)")
 
 #Possible values of a byte:
 bytepossiblevalues = []
@@ -68,24 +72,43 @@ byte_occurence = []
 for i in range(0,255):
     byte_occurence.append(0)
 
-#Count each member occurence in the 1 byte sections: (misses if a byte occurs 0 times)
-#print(Counter(ngrams))
-
 #Check the 1 byte sections, count the occurence bytes
 for bytevalue in ngrams:
     for i in range (0,255):
         if (bytevalue == i):
             byte_occurence[i] += 1
+
+#Print Ngram:
 print("Occurences of bytes 0-255: ")
 print(byte_occurence)
+print(len(byte_occurence))
 
+
+
+
+"""
 #Read the header in a file:
 print("\nPrint the header:")
 print(getELFHeader("sample_exe64.elf"))
+print(getELFHeader("samplebinary"))
+"""
 
-#Read strings in a file:
-print("\nPrint the strings:")
 
-for s in strings("sample_exe64.elf"):
-    print(s)
-    print(re.findall("[0-9a-zA-Z:\.@-_\/]{3,}", s))
+#-------------ML PART----------------
+
+
+"""
+X, y = datasets.load_iris(return_X_y=True)
+print(type(X))
+print(type(y))
+print(X.shape)
+print(y.shape)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=0)
+
+clf = RandomForestClassifier()
+clf.fit(X_train, y_train)
+print(clf.predict([[0, 0, 0, 0]]))
+print(clf.score(X_train, y_train))
+print(clf.score(X_test, y_test))
+"""
